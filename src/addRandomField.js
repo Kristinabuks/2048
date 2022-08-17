@@ -8,7 +8,6 @@ function addRandomField(mat) {
       }
     }
   }
-  console.log(`set.length ${set.size}`)
   if (set.size) {
     let arr = Array.from(set);
     let field = Math.floor(Math.random() * arr.length)

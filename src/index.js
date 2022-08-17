@@ -1,3 +1,3 @@
 import {pixi} from "./pixi"
 
-pixi()
+let score = pixi()
