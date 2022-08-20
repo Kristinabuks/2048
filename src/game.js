@@ -1,5 +1,6 @@
 import { step2048 } from "./step2048"
 import { addRandomField } from "./addRandomField"
+import * as PIXI from 'pixi.js'
 
 function pixi() {
   let score = 0;
@@ -11,29 +12,24 @@ function pixi() {
   let app = new PIXI.Application({ width: size, height: size, antialias: true });
   document.body.appendChild(app.view);
 
+  const scoreContainer = document.createElement('div')
+  const el = document.getElementById('root')
+  el.appendChild(scoreContainer)
 
-  function drawBackground(container) {
-    for (let i = 0; i < n; i++) {
-      for (let j = 0; j < n; j++) {
-        const graphics = new PIXI.Graphics();
-        graphics.beginFill(0xC34288, 0.30);
-        graphics.drawRoundedRect((i + 1) * space + i * side, (j + 1) * space + j * side, side, side, side * 0.15);
-        graphics.endFill();
-        container.addChild(graphics);
-      }
-    }
+  function sumScore(number) {
+    score += number;
+    scoreContainer.innerText = score
   }
 
-  function sumScore(number){
-    score+= number;
-  }
+  function setupContainer() {
+    const background = new PIXI.Container();
 
-  async function sleep(ms) {
-    await new Promise((resolve) => {
-      setTimeout(() => {
-        resolve()
-      }, ms)
-    })
+    let sprite = PIXI.Sprite.from('sample.jpg');
+    background.addChild(sprite);
+
+    const mainContainer = new PIXI.Container();
+    background.addChild(mainContainer);
+    return background
   }
 
   document.addEventListener('keydown', onKeyDown);
@@ -42,41 +38,31 @@ function pixi() {
 
   async function onKeyDown(key) {
     const animate = async (animations) => {
-  
-      return new Promise((resolve) => {
-        lock = true
-        let d = 0
+      const ticker = new PIXI.Ticker()
+      lock = true
 
-        const fn = function(ticker) {
-          return function(dt) {
-            const background = setupContainer()
-            const mainContainer = background.getChildAt(0)
-            drawBackground(mainContainer)
-            dt /= 3
-            //mainContainer.removeChildren()
-            d += dt
-            for (const anim of animations) {
-              const { i, j, value } = anim(dt)
-              if (d >= 1) {
-                i = Math.round(i)
-                j = Math.round(j)
-              }
-              drawCell(mainContainer, i, j, value)
-              if (d >= 1) {
-                ticker.destroy()
-                resolve()
-                lock = false
-              }
+      await new Promise((resolve) => {
+        ticker.add((dt) => {
+          const background = setupContainer()
+          const mainContainer = background.getChildAt(0)
+          drawBackground(mainContainer)
+          //mainContainer.removeChildren()
+          for (const anim of animations) {
+            
+            const { x: i, y: j, scale, value } = anim.currentState()
+            drawCell(mainContainer, i, j, value)
+            if (!anim.next(dt)) {
+              resolve()
+              lock = false
             }
-            app.stage.removeChildren();
-            app.stage.addChild(background)
           }
-        }
-
-        const ticker = new PIXI.Ticker()
-        ticker.add(fn(ticker))
+          app.stage.removeChildren();
+          app.stage.addChild(background)
+        })
         ticker.start()
       })
+
+      ticker.destroy()
     }
 
     if (lock) {
@@ -129,74 +115,20 @@ function pixi() {
 
   }
 
-  function setupContainer() {
-    const background = new PIXI.Container();
 
-    let sprite = PIXI.Sprite.from('sample.jpg');
-    background.addChild(sprite);
+  /*let mat = [
+    [4, 4, 8, 16],
+    [256, 128, 64, 32],
+    [512, 1024, 2048, 4096],
+    [65536, 32768, 16384, 8192],
+  ]*/
 
-    const mainContainer = new PIXI.Container();
-    background.addChild(mainContainer);
-    return background
-  }
-
-  function drawCell(mainContainer, i, j, value) {
-    let x = (j + 1) * space + j * side;
-    let y = (i + 1) * space + i * side;
-
-    const container = new PIXI.Container();
-    const graphics = new PIXI.Graphics();
-    const basicText = new PIXI.Text(value, new PIXI.TextStyle({ fontSize: size / 14 }));
-
-    mainContainer.addChild(container);
-    let color;
-    switch(value){
-      case(2):
-        color = (0xc98fdb);
-        break;
-      case(4):
-        color = (0xad69c2);
-        break;
-      case(8):
-        color = (0x9e55b5);
-        break;
-      case(16):
-        color = (0xa950b5);
-        break;
-      case(32):
-        color = (0xb52cc7);
-        break;
-      case(64):
-        color = (0x9c26ab);
-        break;
-      case(128):
-        color = (0xc72cbf);
-        break;
-      case(256):
-        color = (0xa813a1);
-        break;
-      case(512):
-        color = (0x780173);
-        break;
-      case(1024):
-        color = (0xcf1fa9);
-        break;
-      case(2048):
-        color = (0xb0126b);
-        break;
-      default:
-        color = (0xde1285)
-    }
-
-    basicText.x = x + side / 2;
-    basicText.y = y + side / 2;
-    basicText.anchor.set(0.5);
-    graphics.beginFill(color);
-    graphics.drawRoundedRect(x, y, side, side, side * 0.15);
-    graphics.endFill();
-    container.addChild(graphics);
-    container.addChild(basicText);
-  }
+  let mat = [
+    [4, 0, 0, 0],
+    [0, 0, 0, 0],
+    [0, 0, 0, 0],
+    [0, 0, 0, 0],
+  ]
 
   function drawGrid(mat) {
     const background = setupContainer()
@@ -215,12 +147,84 @@ function pixi() {
     app.stage.addChild(background)
   }
 
-  let mat = [
-    [4, 4, 8, 16],
-    [256, 128, 64, 32],
-    [512, 1024, 2048, 4096],
-    [8192, 16384, 32768, 65536],
-  ]
+  function drawCell(mainContainer, i, j, value) {
+    let x = (j + 1) * space + j * side;
+    let y = (i + 1) * space + i * side;
+
+    const container = new PIXI.Container();
+    const graphics = new PIXI.Graphics();
+
+
+    let fSize;
+    if (value > 8192) {
+      fSize = size / 16;
+    } else {
+      fSize = size / 14;
+    }
+
+    const basicText = new PIXI.Text(value, new PIXI.TextStyle({ fontSize: fSize }));
+
+    mainContainer.addChild(container);
+    let color;
+    switch (value) {
+      case (2):
+        color = (0xc98fdb);
+        break;
+      case (4):
+        color = (0xad69c2);
+        break;
+      case (8):
+        color = (0x9e55b5);
+        break;
+      case (16):
+        color = (0xa950b5);
+        break;
+      case (32):
+        color = (0xb52cc7);
+        break;
+      case (64):
+        color = (0x9c26ab);
+        break;
+      case (128):
+        color = (0xc72cbf);
+        break;
+      case (256):
+        color = (0xa813a1);
+        break;
+      case (512):
+        color = (0x780173);
+        break;
+      case (1024):
+        color = (0xcf1fa9);
+        break;
+      case (2048):
+        color = (0xb0126b);
+        break;
+      default:
+        color = (0xde1285)
+    }
+
+    basicText.x = x + side / 2;
+    basicText.y = y + side / 2;
+    basicText.anchor.set(0.5);
+    graphics.beginFill(color);
+    graphics.drawRoundedRect(x, y, side, side, side * 0.15);
+    graphics.endFill();
+    container.addChild(graphics);
+    container.addChild(basicText);
+  }
+
+  function drawBackground(container) {
+    for (let i = 0; i < n; i++) {
+      for (let j = 0; j < n; j++) {
+        const graphics = new PIXI.Graphics();
+        graphics.beginFill(0xC34288, 0.30);
+        graphics.drawRoundedRect((i + 1) * space + i * side, (j + 1) * space + j * side, side, side, side * 0.15);
+        graphics.endFill();
+        container.addChild(graphics);
+      }
+    }
+  }
 
   drawGrid(mat)
 

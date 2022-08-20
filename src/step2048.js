@@ -1,3 +1,6 @@
+import { CombinedAnimator } from "./animator.ts"
+
+
 function buildTranspose(dir, n) {
   switch (dir) {
     case 'left':
@@ -32,49 +35,21 @@ async function step2048(sumScore, m, dir, animate) {
   return true
 }
 
-function moveAnimation(pos, dir) {
-  return function(dt) {
-    const { i, j, value } = pos
-    let ppos
-    switch (dir) {
-      case 'left':
-        if (j > 0) {
-          ppos = { i, j: j - dt, value }
-        } else {
-          ppos = pos
-        }
-        break
-      case 'right':
-        if (j < 3) {
-          ppos = { i, j: j + dt, value }
-        } else {
-          ppos = pos
-        }
-        break
-      case 'up':
-        if (i > 0) {
-          ppos = { i: i - dt, j, value }
-        } else {
-          ppos = pos
-        }
-        break
-      case 'down':
-        if (i < 3) {
-          ppos = { i: i + dt, j, value }
-        } else {
-          ppos = pos
-        }
-        break
-    }
-    pos = ppos
-    return ppos
-  }
-}
-
-function idleAnimation(pos) {
-  return function(dt) {
-    return pos
-  }
+function linearMotion(ai, aj, bi, bj, value) {
+  return new CombinedAnimator({
+    0: {
+        x: ai, 
+        y: aj,
+        scale: 1,
+        value,
+    },
+    1: {
+        x: bi, 
+        y: bj,
+        scale: 1,
+        value,
+    },
+  }, 5)
 }
 
 function step2048iteration(sumScore, m, dir, mergeBorders, animations) {
@@ -89,7 +64,7 @@ function step2048iteration(sumScore, m, dir, mergeBorders, animations) {
 
       if (m[ai][aj] === 0) {
         if (m[pai][paj] !== 0) {
-          animations.push(idleAnimation({ i: pai, j: paj, value: m[pai][paj] }))
+          animations.push(linearMotion(pai, paj, pai, paj, m[pai][paj]))
         }
         continue
       }
@@ -99,18 +74,18 @@ function step2048iteration(sumScore, m, dir, mergeBorders, animations) {
         m[pai][paj] = m[ai][aj]
         m[ai][aj] = 0
         isFinal = false
-        animations.push(moveAnimation({ i: ai, j: aj, value: m[pai][paj] }, dir))
-        //animator.Enqueue(moveAnimation(dir))
+        animations.push(linearMotion(ai, aj, pai, paj, m[pai][paj]))
+        
       } else if (m[pai][paj] === m[ai][aj] && mergeBorders[i] < j) {
         m[pai][paj] += m[ai][aj]
         sumScore(m[pai][paj])
         m[ai][aj] = 0
         mergeBorders[i] = j;
         isFinal = false
-        animations.push(moveAnimation({ i: ai, j: aj, value: m[pai][paj] }, dir))
-        //animator.Enqueue(mergeAnimation(dir))
+        animations.push(linearMotion(pai, paj, pai, paj, m[pai][paj]))
+        
       } else {
-        animations.push(idleAnimation({ i: pai, j: paj, value: m[pai][paj] }))
+        animations.push(linearMotion(pai, paj, pai, paj, m[pai][paj]))
       }
     }
   }

@@ -5,11 +5,13 @@
   "main": "webpack.config.js",
   "scripts": {
     "test": "npx jest src",
-    "build": "webpack"
+    "build": "npx webpack",
+    "start": "npx webpack serve"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "pixi.js": "^5.3.12",
     "webpack": "^5.42.0",
     "webpack-dev-server": "^4.9.3"
   },
@@ -18,7 +20,10 @@
     "@babel/node": "^7.18.6",
     "@babel/preset-env": "^7.18.6",
     "@babel/preset-react": "^7.18.6",
+    "@babel/preset-typescript": "^7.18.6",
     "babel-loader": "^8.2.5",
+    "ts-loader": "^9.3.1",
+    "typescript": "^4.7.4",
     "webpack-cli": "^4.10.0"
   }
 }

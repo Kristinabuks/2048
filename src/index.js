@@ -1,3 +1,3 @@
-import {pixi} from "./pixi"
+import {pixi} from "./game"
 
-let score = pixi()
+pixi()
