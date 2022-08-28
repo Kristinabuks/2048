@@ -1,3 +1,3 @@
-import { pixi } from "./game";
+import { pixi } from "./game.ts";
 
 pixi();

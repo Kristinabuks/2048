@@ -106,6 +106,7 @@ function step2048iteration(sumScore, grid, dir, mergeBorders) {
         grid[pai][paj] = { ...grid[ai][aj], value: grid[ai][aj].value + grid[pai][paj].value }
         grid[ai][aj].value = 0;
 
+
         sumScore(grid[pai][paj].value)
 
         mergeBorders[i] = j;

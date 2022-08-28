@@ -1,2 +1,5 @@
 node_modules
-public
+public/*
+!public/sample.jpg
+!public/index.html
+!public/index.css

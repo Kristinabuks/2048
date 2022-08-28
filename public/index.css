@@ -1,0 +1,51 @@
+canvas {
+    border-style: solid;
+    border-color: rgba(146, 189, 224, 0.507);
+    border-radius: 1vw;
+}
+
+body {
+    background-color: antiquewhite;   
+}
+
+.game {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+#game-score {
+    height: 5rem;
+    display: flex;
+    align-items: center;
+    font-size: 2rem;
+    font-family: 'Open Sans', sans-serif;
+}
+
+@media screen {
+    #game-grid {
+        display: flex;
+        align-items: center;
+        width: 90vw;
+        height: 90vw;
+    }
+}
+
+@media screen and (min-width: 768px) {
+    #game-grid {
+        display: flex;
+        align-items: center;
+        width: 70vw;
+        height: 70vw;
+    }
+}
+
+@media screen and (min-width: 992px) {
+    #game-grid {
+        display: flex;
+        align-items: center;
+        width: calc(100vw / 3);
+        height: calc(100vw / 3);
+    }
+}

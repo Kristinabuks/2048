@@ -14,6 +14,9 @@ module.exports = {
     port: 9000,
     hot: true,
   },
+  resolve: {
+    extensions: [".ts", ".tsx", ".js"]
+  },
   module: {
     rules: [
         { 
@@ -25,6 +28,10 @@ module.exports = {
           test: /\.tsx?$/,
           exclude: /node_modules/,
           use: 'ts-loader',
+        },
+        {
+          test: /\.(png|jpe?g|gif)$/i,
+          use: 'file-loader'
         },
     ]
   }
