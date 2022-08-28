@@ -21,7 +21,7 @@ interface IElement {
   value: number;
 }
 
-type GameGrid = IElement[][]
+type GameGrid = IElement[][];
 
 interface IAnimationLoop {
   run(animations: CombinedAnimator[]): void;

@@ -1,4 +1,4 @@
-import { N } from "./config"
+import { N } from "./config";
 
 function buildTranspose(dir) {
   switch (dir) {

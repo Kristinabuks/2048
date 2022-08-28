@@ -6,7 +6,7 @@ import { step2048 } from "./step2048.ts";
 // @ts-ignore
 import { canAddRandomField } from "./addRandomField.ts";
 import { checkFinal } from "./checkFinal";
-import { FONT_FAMILY, N } from "./config"
+import { FONT_FAMILY, N } from "./config";
 
 function getKeyboardDirection(key: KeyboardEvent) {
   switch (key.key) {
@@ -285,10 +285,12 @@ function bindKeyboardListener(
     }
 
     if (await step2048(score, grid, dir, animLoop)) {
-      if (!addRandomField(grid, drawer) && checkFinal(grid)) {
-        document.removeEventListener("keydown", onKeyDown);
-        drawer.drawFinal();
-      }
+      addRandomField(grid, drawer);
+    }
+
+    if (checkFinal(grid)) {
+      document.removeEventListener("keydown", onKeyDown);
+      drawer.drawFinal();
     }
   }
 
@@ -303,8 +305,6 @@ function addRandomField(grid: Array<Array<IElement>>, drawer: GameDrawer) {
 
     drawer.drawCell(i, j, value);
   }
-
-  return ok;
 }
 
 export { pixi, GameScore };
