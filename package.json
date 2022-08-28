@@ -5,6 +5,7 @@
   "main": "webpack.config.js",
   "scripts": {
     "test": "npx jest src",
+    "format": "npx prettier -w ./src",
     "build": "npx webpack",
     "start": "npx webpack serve"
   },

@@ -1,11 +1,12 @@
 import * as PIXI from "pixi.js";
-import { checkFinal } from "./checkFinal";
 // @ts-ignore
 import { CombinedAnimator } from "./animator.ts";
 // @ts-ignore
 import { step2048 } from "./step2048.ts";
 // @ts-ignore
-import { addRandomField } from "./addRandomField.ts";
+import { canAddRandomField } from "./addRandomField.ts";
+import { checkFinal } from "./checkFinal";
+import { FONT_FAMILY, N } from "./config"
 
 function getKeyboardDirection(key: KeyboardEvent) {
   switch (key.key) {
@@ -58,132 +59,136 @@ function getColorByValue(value: number): [number, number] {
 }
 
 class GameDrawer {
-  app: PIXI.Application
+  app: PIXI.Application;
   constructor(app: PIXI.Application) {
-    this.app = app
+    this.app = app;
 
-    const splash: PIXI.Container = new PIXI.Container()
-    splash.name = "splash"
+    const splash: PIXI.Container = new PIXI.Container();
+    splash.name = "splash";
     app.stage.addChild(splash);
-    splash.addChild(PIXI.Sprite.from("sample.jpg"))
+    splash.addChild(PIXI.Sprite.from("sample.jpg"));
 
     const graphics = new PIXI.Graphics();
-    graphics.name = "graphics"
+    graphics.name = "graphics";
     app.stage.addChild(graphics);
 
     const labels = new PIXI.Container();
-    labels.name = "labels"
+    labels.name = "labels";
     app.stage.addChild(labels);
   }
 
   graphics(): PIXI.Graphics {
-    return this.app.stage.getChildByName("graphics") as PIXI.Graphics
+    return this.app.stage.getChildByName("graphics") as PIXI.Graphics;
   }
 
   labels(): PIXI.Container {
-    return this.app.stage.getChildByName("labels") as PIXI.Container
+    return this.app.stage.getChildByName("labels") as PIXI.Container;
   }
 
   splash(): PIXI.Container {
-    return this.app.stage.getChildByName("labels") as PIXI.Container
+    return this.app.stage.getChildByName("labels") as PIXI.Container;
   }
 
   drawBackground() {
-    const splash = this.splash()
-    splash.removeChildren()
-    splash.addChild(PIXI.Sprite.from("sample.jpg"))
+    const labels = this.labels();
+    const splash = this.splash();
+    const graphics = this.graphics();
 
-    const graphics = this.graphics()
-    graphics.clear()
+    splash.removeChildren();
+    splash.addChild(PIXI.Sprite.from("sample.jpg"));
+    graphics.clear();
+    labels.removeChildren();
 
-    const labels = this.labels()
-    labels.removeChildren()
-
-    const n = 4;
-    for (let i = 0; i < n; i++) {
-      for (let j = 0; j < n; j++) {
-        this.drawCell(i, j, 0)
+    for (let i = 0; i < N; i++) {
+      for (let j = 0; j < N; j++) {
+        this.drawCell(i, j, 0);
       }
     }
   }
 
   drawCell(i: number, j: number, value: number) {
-    const graphics = this.graphics()
+    const graphics = this.graphics();
+    const labels = this.labels();
+    const [color, opacity] = getColorByValue(value);
 
-    const resizeTo = this.app.resizeTo as HTMLElement
-    const size = resizeTo.getBoundingClientRect().width;
+    const size = (this.app.resizeTo as HTMLElement).getBoundingClientRect()
+      .width;
     const side = size / 5;
     const space = (size / 5) * 0.2;
     const x = (j + 1) * space + j * side;
     const y = (i + 1) * space + i * side;
 
-    const [color, opacity] = getColorByValue(value)
     graphics.beginFill(color, opacity);
     graphics.drawRoundedRect(x, y, side, side, side * 0.15);
     graphics.endFill();
 
     if (value === 0) {
-      return
+      return;
     }
 
-    const labels = this.labels()
-    const basicText = new PIXI.BitmapText(
-      String(value),
-      { fontName: FONT_FAMILY, fontSize: value > 8192 ? size / 16 : size / 14 }
-    );
-    basicText.x = x + side / 2;
-    basicText.y = y + side / 2;
-    basicText.anchor = new PIXI.Point(0.5, 0.5)
-    labels.addChild(basicText);
+    const bitmapText = new PIXI.BitmapText(String(value), {
+      fontName: FONT_FAMILY,
+      fontSize: value > 8192 ? size / 16 : size / 14,
+    });
+    bitmapText.x = x + side / 2;
+    bitmapText.y = y + side / 2;
+    bitmapText.anchor = new PIXI.Point(0.5, 0.5);
+    labels.addChild(bitmapText);
   }
 
   drawFinal() {
-    const splash = this.splash()
-    const graphics = this.graphics()
+    const splash = this.splash();
+    const graphics = this.graphics();
 
-    const resizeTo = this.app.resizeTo as HTMLElement
+    const resizeTo = this.app.resizeTo as HTMLElement;
     const size = resizeTo.getBoundingClientRect().width;
 
     graphics.beginFill(0xc34288, 0.5);
     graphics.drawRoundedRect(0, 0, size, size, 0.25);
     graphics.endFill();
 
-    const basicText = new PIXI.BitmapText(
-      'Final',
-      { fontName: FONT_FAMILY, fontSize: size / 10 }
-    );
+    const basicText = new PIXI.BitmapText("Final", {
+      fontName: FONT_FAMILY,
+      fontSize: size / 10,
+    });
     basicText.x = size / 2;
     basicText.y = size / 2;
-    basicText.anchor = new PIXI.Point(0.5, 0.5)
+    basicText.anchor = new PIXI.Point(0.5, 0.5);
 
     splash.addChild(basicText);
   }
 }
 
 class AnimationLoop {
-  animations: Array<CombinedAnimator>
-  drawer: GameDrawer
+  cancelAnim: Array<CombinedAnimator>;
+  drawer: GameDrawer;
+
   constructor(drawer: GameDrawer) {
-    this.animations = []
-    this.drawer = drawer
+    this.cancelAnim = [];
+    this.drawer = drawer;
   }
 
   async run(animations: Array<CombinedAnimator>) {
-    this.animations = animations
-
     const ticker = new PIXI.Ticker();
+
+    this.cancelAnim = animations;
 
     await new Promise((resolve) => {
       ticker.add((dt) => {
-        this.drawer.drawBackground()
-        let finish = true
+        let finish = true;
+
+        this.drawer.drawBackground();
+
         for (const anim of animations) {
           const { x: i, y: j, value } = anim.currentState();
-          this.drawer.drawCell(i, j, value)
+
+          this.drawer.drawCell(i, j, value);
+
           if (anim.next(dt)) {
-            finish = false
+            finish = false;
           }
         }
+
         if (finish) {
           resolve(undefined);
         }
@@ -195,95 +200,111 @@ class AnimationLoop {
   }
 
   cancel() {
-    for (const anim of this.animations) {
-      anim.finalize()
+    for (const anim of this.cancelAnim) {
+      anim.finalize();
     }
   }
 }
 
 interface IElement {
-  i: number
-  j: number
-  value: number
+  i: number;
+  j: number;
+  value: number;
 }
 
 function buildGrid(): Array<Array<IElement>> {
-  const grid = []
-  const n = 4
-  for (let i = 0; i < n; i++) {
-    const row = []
-    for (let j = 0; j < n; j++) {
-      row.push({ i, j, value: 0 })
+  const grid = [];
+
+  for (let i = 0; i < N; i++) {
+    const row = [];
+
+    for (let j = 0; j < N; j++) {
+      row.push({ i, j, value: 0 });
     }
-    grid.push(row)
+
+    grid.push(row);
   }
-  return grid
+
+  return grid;
 }
 
-const FONT_FAMILY = "Open Sans"
+class GameScore {
+  gameScoreView: HTMLElement;
+  score: number;
+
+  constructor() {
+    this.gameScoreView = document.getElementById("game-score");
+    this.score = 0;
+  }
+
+  update(value: number) {
+    this.score += value;
+    this.gameScoreView.innerText = `Score:\xa0${this.score}`;
+  }
+}
 
 async function pixi() {
-  let score = 0;
-
   const gridContainer = document.getElementById("game-grid");
-
-  let app = new PIXI.Application({
+  const app = new PIXI.Application({
     antialias: true,
     resizeTo: gridContainer,
   });
+  const grid = buildGrid();
+  const score = new GameScore();
+  const drawer = new GameDrawer(app);
+  const animLoop = new AnimationLoop(drawer);
 
   PIXI.BitmapFont.from(FONT_FAMILY, {
     fontFamily: FONT_FAMILY,
     fontSize: 32,
   });
+
+  score.update(0);
+
   gridContainer.appendChild(app.view);
 
-  const grid = buildGrid();
+  bindKeyboardListener(grid, drawer, animLoop, score);
 
-  const scoreContainer = document.getElementById("game-score");
+  drawer.drawBackground();
 
-  function sumScore(number: number) {
-    score += number;
-    scoreContainer.innerText = `Score:\xa0${score}`;
-  }
+  addRandomField(grid, drawer);
+}
 
-  sumScore(0)
-
-  let isFinal = false;
-
-  document.addEventListener("keydown", onKeyDown);
-  const drawer = new GameDrawer(app)
-  const animLoop = new AnimationLoop(drawer)
-
-
+function bindKeyboardListener(
+  grid: Array<Array<IElement>>,
+  drawer: GameDrawer,
+  animLoop: AnimationLoop,
+  score: GameScore
+) {
   async function onKeyDown(key: KeyboardEvent) {
-    animLoop.cancel()
+    animLoop.cancel();
 
     const dir = getKeyboardDirection(key);
     if (!dir) {
       return;
     }
 
-    if (await step2048(sumScore, grid, dir, animLoop)) {
-      const [field, ok] = addRandomField(grid);
-      if (ok) {
-        const { i, j, value } = field
-        drawer.drawCell(i, j, value)
+    if (await step2048(score, grid, dir, animLoop)) {
+      if (!addRandomField(grid, drawer) && checkFinal(grid)) {
+        document.removeEventListener("keydown", onKeyDown);
+        drawer.drawFinal();
       }
     }
-    isFinal = checkFinal(grid)
-    if (isFinal) {
-      document.removeEventListener("keydown", onKeyDown);
-      drawer.drawFinal()
-    }
   }
 
-  drawer.drawBackground();
-  const [field, ok] = addRandomField(grid);
-  if (ok) {
-    const { i, j, value } = field
-    drawer.drawCell(i, j, value)
-  }
+  document.addEventListener("keydown", onKeyDown);
 }
 
-export { pixi };
+function addRandomField(grid: Array<Array<IElement>>, drawer: GameDrawer) {
+  const [field, ok] = canAddRandomField(grid);
+
+  if (ok) {
+    const { i, j, value } = field;
+
+    drawer.drawCell(i, j, value);
+  }
+
+  return ok;
+}
+
+export { pixi, GameScore };

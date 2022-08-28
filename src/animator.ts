@@ -62,13 +62,16 @@ class CombinedAnimator implements IAnimator {
   idx: number;
 
   constructor(keyFrames: KeyFrames, duration: number) {
+    const points = Object.keys(keyFrames).sort();
+
     this.idx = 0;
     this.segments = [];
-    const points = Object.keys(keyFrames).sort();
+
     for (let i = 0; i < points.length - 1; i++) {
-      let start = points[i];
-      let end = points[i + 1];
-      let segmentDuration = (parseFloat(end) - parseFloat(start)) * duration;
+      const start = points[i];
+      const end = points[i + 1];
+      const segmentDuration = (parseFloat(end) - parseFloat(start)) * duration;
+
       this.segments.push(
         new LinearAnimator(keyFrames[start], keyFrames[end], segmentDuration)
       );
@@ -79,6 +82,7 @@ class CombinedAnimator implements IAnimator {
     if (this.idx === this.segments.length) {
       return false;
     }
+
     if (!this.segments[this.idx].next(dt)) {
       this.idx++;
 
@@ -96,8 +100,9 @@ class CombinedAnimator implements IAnimator {
 
   finalize() {
     if (this.idx !== this.segments.length) {
-        this.segments[this.idx].finalize();
+      this.segments[this.idx].finalize();
     }
+
     this.idx = this.segments.length;
   }
 }

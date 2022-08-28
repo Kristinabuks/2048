@@ -1,6 +1,7 @@
 function addRandomField(grid) {
-  let set = new Set();
-  let n = grid.length;
+  const set = new Set();
+  const n = grid.length;
+
   for (let i = 0; i < n; i++) {
     for (let j = 0; j < n; j++) {
       if (grid[i][j].value === 0) {
@@ -8,16 +9,18 @@ function addRandomField(grid) {
       }
     }
   }
+
   if (!set.size) {
-    return [{}, false]
+    return [{}, false];
   }
 
-  let arr = Array.from(set);
-  let field = Math.floor(Math.random() * arr.length);
-  let [i, j] = arr[field];
+  const arr = Array.from(set);
+  const field = Math.floor(Math.random() * arr.length);
+  const [i, j] = arr[field];
+
   grid[i][j] = { i, j, value: 2 };
 
-  return [grid[i][j], true]
+  return [grid[i][j], true];
 }
 
 export { addRandomField };

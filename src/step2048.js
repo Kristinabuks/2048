@@ -17,7 +17,7 @@ async function step2048(sumScore, grid, dir, animLoop) {
   const mergeBorders = [0, 0, 0, 0];
   let isFirstIter = true;
 
-  setupGrid(grid)
+  setupGrid(grid);
 
   while (1) {
     let isFinal = step2048iteration(sumScore, grid, dir, mergeBorders);
@@ -36,33 +36,32 @@ async function step2048(sumScore, grid, dir, animLoop) {
 }
 
 function setupGrid(grid) {
-  const n = grid.length
+  const n = grid.length;
   for (let i = 0; i < n; i++) {
     for (let j = 0; j < n; j++) {
-      grid[i][j] = { ...grid[i][j], i, j }
+      grid[i][j] = { ...grid[i][j], i, j };
     }
   }
 }
 
 function animateDiff(grid) {
-  const animations = []
-  const n = grid.length
+  const animations = [];
+  const n = grid.length;
   for (let di = 0; di < n; di++) {
     for (let dj = 0; dj < n; dj++) {
-      const { i: si, j: sj, value } = grid[di][dj]
+      const { i: si, j: sj, value } = grid[di][dj];
       if (value !== 0) {
         animations.push(linearMotion(si, sj, di, dj, value));
       }
     }
   }
-  return animations
+  return animations;
 }
-
 
 function linearMotion(si, sj, di, dj, value) {
   // FIXME: хак, чтобы не исчезали
-  const dist = Math.max(((di - si)**2 + (dj - sj)**2)**0.5, 1)
-  const dur = 5 * dist
+  const dist = Math.max(((di - si) ** 2 + (dj - sj) ** 2) ** 0.5, 1);
+  const dur = 5 * dist;
 
   return new CombinedAnimator(
     {
@@ -98,16 +97,21 @@ function step2048iteration(sumScore, grid, dir, mergeBorders) {
       }
 
       if (grid[pai][paj].value === 0) {
-        grid[pai][paj] = { ...grid[ai][aj] }
+        grid[pai][paj] = { ...grid[ai][aj] };
         grid[ai][aj].value = 0;
 
         isFinal = false;
-      } else if (grid[pai][paj].value === grid[ai][aj].value && mergeBorders[i] < j) {
-        grid[pai][paj] = { ...grid[ai][aj], value: grid[ai][aj].value + grid[pai][paj].value }
+      } else if (
+        grid[pai][paj].value === grid[ai][aj].value &&
+        mergeBorders[i] < j
+      ) {
+        grid[pai][paj] = {
+          ...grid[ai][aj],
+          value: grid[ai][aj].value + grid[pai][paj].value,
+        };
         grid[ai][aj].value = 0;
 
-
-        sumScore(grid[pai][paj].value)
+        sumScore(grid[pai][paj].value);
 
         mergeBorders[i] = j;
         isFinal = false;
