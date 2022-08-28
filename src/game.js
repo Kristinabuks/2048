@@ -2,7 +2,7 @@ import { step2048 } from "./step2048.ts";
 import { addRandomField } from "./addRandomField.ts";
 import * as PIXI from "pixi.js";
 import { KeyboardEnum } from "./enumKeyboard";
-import { checkFinal } from "./checkFinale";
+import { checkFinal } from "./checkFinal";
 
 function getKeyboardDirection(key) {
   switch (key.keyCode) {

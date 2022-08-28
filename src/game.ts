@@ -1,5 +1,5 @@
 import * as PIXI from "pixi.js";
-import { checkFinal } from "./checkFinale";
+import { checkFinal } from "./checkFinal";
 // @ts-ignore
 import { CombinedAnimator } from "./animator.ts";
 // @ts-ignore

@@ -29,12 +29,10 @@ function checkFinal(mat) {
 
     if (isFilled) {
         for (let dir of dirs) {
-
             const transpose = buildTranspose(dir, n);
 
             for (let i = 0; i < n; i++) {
                 for (let j = 1; j < n; j++) {
-
                         let { i: ai, j: aj } = transpose(i, j);
                         let { i: pai, j: paj } = transpose(i, j - 1);
 
@@ -44,9 +42,7 @@ function checkFinal(mat) {
                     
                 }
             }
-
         }
-
     }
 
     return isFinal
