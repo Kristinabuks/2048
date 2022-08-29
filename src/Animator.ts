@@ -1,14 +1,14 @@
-interface IAnimator {
-  next(dt: number): boolean;
-  finalize(): void;
-  currentState(): AnimationSpec;
-}
-
 interface AnimationSpec {
   x: number;
   y: number;
   scale: number;
   value: number;
+}
+
+interface IAnimator {
+  next(dt: number): boolean;
+  finalize(): void;
+  currentState(): AnimationSpec;
 }
 
 class LinearAnimator implements IAnimator {
@@ -107,4 +107,4 @@ class CombinedAnimator implements IAnimator {
   }
 }
 
-export { CombinedAnimator };
+export { IAnimator, LinearAnimator, CombinedAnimator };

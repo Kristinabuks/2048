@@ -2,10 +2,10 @@ const path = require('path');
 
 module.exports = {
   mode: 'development',
-  entry: './src/index.js',
+  entry: './src/main.ts',
   output: {
-      path: path.resolve(__dirname, 'public'),
-      filename: 'bundle.js',
+    path: path.resolve(__dirname, 'public'),
+    filename: 'bundle.js',
   },
   optimization: {
     minimize: true,
@@ -19,20 +19,20 @@ module.exports = {
   },
   module: {
     rules: [
-        { 
-            test: /\.(js|jsx)$/, 
-            exclude: /node_modules/, 
-            use: ["babel-loader"] 
-        },
-        {
-          test: /\.tsx?$/,
-          exclude: /node_modules/,
-          use: 'ts-loader',
-        },
-        {
-          test: /\.(png|jpe?g|gif)$/i,
-          use: 'file-loader'
-        },
+      {
+        test: /\.(js|jsx)$/,
+        exclude: /node_modules/,
+        use: ["babel-loader"]
+      },
+      {
+        test: /\.tsx?$/,
+        exclude: /node_modules/,
+        use: 'ts-loader',
+      },
+      {
+        test: /\.(png|jpe?g|gif)$/i,
+        use: 'file-loader'
+      },
     ]
   }
 };
